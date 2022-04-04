@@ -46,10 +46,59 @@ class Home(LoginRequiredMixin,TemplateView):
         context['category_count'] = 0
         context['author_count'] = 0
         context['terms_count'] = 0
-        total_size = 0
         size = 0
-        for p in total_size:
-            p.file.size
-            size+=p.file.size
+
         context['total_size'] = size
         return context
+
+class Security_Page(LoginRequiredMixin,TemplateView):
+    LOGIN_URL = 'login'
+    template_name = 'pages/security.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = "Change Password"
+        return context
+
+class Security_AJAXView(LoginRequiredMixin,View):
+    def get(self, request):
+        data = dict()
+        user = User.objects.get(id=self.request.user.id)
+        form = PasswordChangeForm(user=user)
+        context = {
+            'form': form,
+            'user': user,
+            'btn_name': "primary",
+            'btn_title': "Submit",
+        }
+        data['html_form'] = render_to_string('forms/security_forms.html',context)
+        return JsonResponse(data)
+
+    def post(self, request):
+        data =  dict()
+        if request.method == 'POST':
+            form = PasswordChangeForm(user=self.request.user,data=request.POST)
+            if form.is_valid():
+                user = form.save()
+                update_session_auth_hash(request, user)
+                data['valid'] = True
+                data['message_type'] = success
+                data['message_title'] = 'Successfully updated.'
+                data['url'] = reverse('dashboard')
+                logout(request)
+            else:
+                message = form.errors.as_json()
+                y = json.loads(message)
+                try:
+                    title = y["new_password2"][0]["message"]
+                except Exception as e:
+                    pass
+                try:
+                    title = y["old_password"][0]["message"]
+                except Exception as e:
+                    pass
+                print(message)
+                data['valid'] = False
+                data['message_type'] = error
+                data['message_title'] = title
+
+        return JsonResponse(data)
