@@ -5,7 +5,6 @@ from django.views.generic import (
     ListView,
     DetailView,
 )
-from django.contrib.auth.models import User
 from django.contrib.auth.forms import PasswordChangeForm,SetPasswordForm
 from django.http import JsonResponse
 from django.contrib.auth import update_session_auth_hash
@@ -19,41 +18,25 @@ from django.urls import reverse
 #datetime
 from datetime import datetime
 #JSON AJAX
+from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.template import RequestContext
 from django.contrib.auth.mixins import LoginRequiredMixin
+
+from django.utils import timezone
+
 success = 'success'
 info = 'info'
 error = 'error'
 warning = 'warning'
 question = 'question'
 
-from django.utils import timezone
-from application.render import (
-    Render
-)
-# from application.models import (
-#
-# )
+
 from django.contrib.auth.models import User
-
-class Home(LoginRequiredMixin,TemplateView):
-    template_name = 'pages/dashboard.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['document_count'] = 0
-        context['category_count'] = 0
-        context['author_count'] = 0
-        context['terms_count'] = 0
-        size = 0
-
-        context['total_size'] = size
-        return context
 
 class Security_Page(LoginRequiredMixin,TemplateView):
     LOGIN_URL = 'login'
-    template_name = 'pages/security.html'
+    template_name = 'pages/security/page_view.html'
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = "Change Password"
@@ -70,7 +53,7 @@ class Security_AJAXView(LoginRequiredMixin,View):
             'btn_name': "primary",
             'btn_title': "Submit",
         }
-        data['html_form'] = render_to_string('forms/security_forms.html',context)
+        data['html_form'] = render_to_string('pages/security/page_forms.html',context)
         return JsonResponse(data)
 
     def post(self, request):
